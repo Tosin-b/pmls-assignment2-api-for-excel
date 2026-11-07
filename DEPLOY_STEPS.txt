@@ -1,0 +1,91 @@
+DEPLOYING THIS APP TO RENDER
+============================
+
+I can't do these steps myself, so here's exactly what to click. Takes about 10 minutes.
+
+What goes to Render
+-------------------
+
+Everything Render needs is in the app folder, and nothing else needs uploading:
+
+- main.py - the FastAPI app
+- requirements.txt - fastapi, uvicorn, pandas
+- skin clinic campaign.csv - the data, so the app can load it on the server
+
+Step 1 - Test it locally first
+------------------------------
+
+Worth doing before deploying, so you know the app itself works.
+
+cd app
+pip install -r requirements.txt
+uvicorn main:app --reload
+
+Open http://127.0.0.1:8000/campaign-analysis. You should see four tables. Check they
+match the ones in campaign_analysis.ipynb (overall response rate 39.9%, Female 43.77%,
+Male 34.08%). Press Ctrl+C to stop.
+
+Step 2 - The code is already on GitHub
+--------------------------------------
+
+This folder has been pushed to a public repo:
+
+https://github.com/Tosin-b/pmls-assignment2-api-for-excel
+
+The app lives in the app folder inside the repo, which is why Root Directory is set to
+app in Step 3.
+
+Step 3 - Create the Render web service
+--------------------------------------
+
+1. Sign in at https://render.com (signing in with GitHub is easiest, it connects the
+   account for you).
+2. Click New then Web Service.
+3. Pick Build and deploy from a Git repository, then Connect next to your
+   pmls-assignment2-api-for-excel repo. If you don't see it, click Configure account and give
+   Render access to the repo.
+4. Fill in the settings:
+
+   Field                Value
+   Name                 pmls-assignment1 (this becomes part of your URL)
+   Language / Runtime   Python 3
+   Branch               main
+   Root Directory       app
+   Build Command        pip install -r requirements.txt
+   Start Command        uvicorn main:app --host 0.0.0.0 --port $PORT
+   Instance Type        Free
+
+   The start command matters. --host 0.0.0.0 lets Render reach the app from outside the
+   container, and $PORT is the port Render assigns. The default
+   uvicorn main:app won't work on Render.
+
+5. Click Create Web Service. The first build takes around 2 to 5 minutes. Watch the
+   log until you see Application startup complete and the status goes to Live.
+
+Step 4 - Open your public link
+------------------------------
+
+https://<app-name>.onrender.com/campaign-analysis
+
+So if you named it pmls-assignment1, that's
+https://pmls-assignment1.onrender.com/campaign-analysis.
+
+Check the four tables look the same as they did locally. Save this URL, Assignment 2
+needs it for the Excel Power Query connection.
+
+Things worth knowing
+--------------------
+
+- The free tier sleeps. After 15 minutes with no traffic Render shuts the instance
+  down, so the next request has to start it up again. That first load can take 50
+  seconds or so. It's not broken, just wait. Every load after that is fast until it
+  goes to sleep again.
+- Before showing it to anyone (or connecting Excel), open the URL in a browser first
+  to wake it up. Otherwise it looks like it's hanging.
+- If the build fails, open the Render log. Nearly always it's one of: a typo in the
+  start command, Root Directory not set to app, or a missing
+  package in requirements.txt.
+- If you get a 404, you're probably on https://<app-name>.onrender.com/ with no
+  path. That returns the JSON health message, which is correct. The tables are at
+  /campaign-analysis.
+- Updating the app later: push to main and Render redeploys automatically.

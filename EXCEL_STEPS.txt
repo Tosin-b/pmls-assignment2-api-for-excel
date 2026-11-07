@@ -1,0 +1,130 @@
+ASSIGNMENT 2 - GETTING THE API TABLES INTO EXCEL WITH A REFRESH BUTTON
+======================================================================
+
+The API itself is the same one from Assignment 1, nothing new to build there. It needs to
+be deployed on Render first (see DEPLOY_STEPS.txt in this folder) so Excel has a public URL
+to read from. Everything below is the Excel side, which I can't do for you.
+
+Your URL will be:
+
+https://<app-name>.onrender.com/campaign-analysis
+
+Read this first, Mac users: Power Query's From Web connector is missing or
+severely limited in most versions of Excel for Mac, and the refresh macro in Part 3
+won't run there either. Do this part in Excel on Windows (a college PC or a Windows
+VM). If you only have a Mac, skip to the "Mac fallback" note at the bottom.
+
+Part 1 - Connect with Power Query
+---------------------------------
+
+1. Wake the API up first. Open your Render URL in a browser and wait for the tables to
+   appear. The free tier sleeps after 15 minutes idle, and the first load can take about
+   50 seconds. If you skip this, Excel will probably time out and you'll think the
+   connection is broken.
+2. In Excel, go to the Data tab.
+3. Click Get Data then From Other Sources then From Web.
+   (On some versions there's a From Web button sitting directly on the Data tab.)
+4. Paste your URL into the box, leave it on Basic, and click OK.
+5. If it asks about authentication, choose Anonymous and click Connect. The API is
+   public, there's no login.
+
+Part 2 - Load the four tables
+-----------------------------
+
+1. The Navigator window opens and lists what it found on the page. You should see
+   Table 0, Table 1, Table 2 and Table 3. Click each one to preview it on the right
+   and confirm which is which:
+
+   Navigator item   What it is
+   Table 0          Gender vs response rate
+   Table 1          Age group vs response rate
+   Table 2          Purchase last quarter vs response rate
+   Table 3          Unique products purchased vs response rate
+
+2. Tick Select multiple items at the top, then tick all four tables.
+3. Click the arrow next to Load and choose Load To....
+4. Choose Table, then Existing worksheet, and pick where the first one goes
+   (e.g. =$A$2). Repeat for the others, leaving a few blank rows between each so they
+   don't collide when the row counts change. Something like:
+
+   - Gender table at A2
+   - Age group table at A8
+   - Purchase last quarter table at A15
+   - Products table at A21
+
+   Loading each to its own sheet is also fine, and tidier if you prefer.
+5. Type a clear heading in the cell above each table ("Gender vs Response Rate", and so
+   on), because Power Query only brings the column headers, not the <h2> titles from the
+   page.
+6. Check the numbers against the notebook: overall response rate 39.9%, Female 43.77%,
+   Male 34.08%, age 30-50 highest at 47.06%, products >8 highest at 52.00%.
+
+Part 3 - Add the refresh button
+-------------------------------
+
+1. Save as .xlsm. File then Save As, and set the type to
+   Excel Macro-Enabled Workbook (*.xlsm). Name it campaign_analysis.xlsm. This
+   matters: a normal .xlsx silently throws away macros when you save.
+2. Turn on the Developer tab if you can't see it: File then Options then
+   Customize Ribbon, and tick Developer in the right-hand list.
+3. Add the macro. Press Alt+F11 to open the VBA editor, then Insert then
+   Module, and paste this in:
+
+   Sub RefreshCampaignAnalysis()
+       ' pull the latest tables from the API
+       ActiveWorkbook.RefreshAll
+       MsgBox "Campaign analysis refreshed."
+   End Sub
+
+   (It's also saved as RefreshCampaignAnalysis.bas in this folder if you'd rather use
+   File then Import File... instead of pasting.)
+
+   Close the VBA editor with Alt+Q.
+4. Draw the button. On the Developer tab click Insert, and under
+   Form Controls pick the Button (the first icon, a plain grey rectangle). Drag a
+   rectangle on the sheet somewhere above the tables.
+5. The Assign Macro dialog pops up as soon as you release the mouse. Select
+   RefreshCampaignAnalysis and click OK.
+6. The button will say "Button 1". Right-click it, choose Edit Text, and type
+   Refresh Results. Click any cell to finish.
+7. Test it. Click the button. The tables should reload and you should get the
+   "Campaign analysis refreshed." message box. Remember the first click after a quiet
+   period may take around 50 seconds while Render wakes the app up.
+
+Checking it really works end to end
+-----------------------------------
+
+A refresh that returns the same numbers doesn't prove much on its own. To show the data
+is genuinely coming from the API and not from a cached copy:
+
+1. Stop the Render service (Render dashboard, then Suspend), click the button, and
+   confirm you get an error rather than fresh data.
+2. Resume the service, click again, and confirm the tables come back.
+
+Troubleshooting
+---------------
+
+- "We couldn't authenticate with the credentials provided" - pick Anonymous in the
+  authentication dialog.
+- The refresh hangs or times out - the Render instance is almost certainly asleep.
+  Open the URL in a browser, wait for it to load, then try again.
+- Only one table shows in Navigator - the page didn't load fully, usually the sleep
+  problem again. Cancel, wake the URL in a browser, and reconnect.
+- The button does nothing - the file was saved as .xlsx rather than .xlsm, so the
+  macro was dropped. Save as .xlsm and redo Part 3.
+- "Macros have been disabled" banner - click Enable Content. If the file came from
+  an email or download, Excel may have blocked it: right-click the file in Explorer,
+  choose Properties, tick Unblock, and reopen it.
+
+Mac fallback
+------------
+
+If you have no access to Windows Excel, you can still get the data in, but without the
+live connection or the button:
+
+1. Open the Render URL in a browser.
+2. Select the tables, copy, and paste into Excel.
+
+Be upfront in the submission that this was done because Power Query From Web isn't
+available in Excel for Mac. It doesn't meet the "refresh button" part of the assignment,
+so it's a last resort rather than an alternative.

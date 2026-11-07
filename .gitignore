@@ -1,0 +1,5 @@
+# briefs stay local
+*.md
+__pycache__/
+.DS_Store
+.ipynb_checkpoints/
