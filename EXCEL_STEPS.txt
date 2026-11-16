@@ -5,9 +5,9 @@ The API itself is the same one from Assignment 1, nothing new to build there. It
 be deployed on Render first (see DEPLOY_STEPS.txt in this folder) so Excel has a public URL
 to read from. Everything below is the Excel side, which I can't do for you.
 
-Your URL will be:
+Your live URL (already deployed and checked):
 
-https://<app-name>.onrender.com/campaign-analysis
+https://pmls-assignment1-fastapi-render.onrender.com/campaign-analysis
 
 Read this first, Mac users: Power Query's From Web connector is missing or
 severely limited in most versions of Excel for Mac, and the refresh macro in Part 3
